@@ -10,25 +10,13 @@ audio_capture: Provides code to capture audio from a microphone and transport it
 
 audio_play: Receives audio messages from an audio_capture node. Outputs the messages to the local speakers.
 
-現状上記、2つは、コンパイル時にエラーが出る。
-`libgstreamer-plugins-base1.0-dev` と ` gstreamer1.0`　をapt でinstallすること
+audio_captureとaudio_play、2つは、`libgstreamer-plugins-base1.0-dev` と ` gstreamer1.0`　をapt でinstallすること
+とエラーが出る。
 
 ```
 Errors     << audio_capture:cmake /home/gisen/ros/logs/audio_capture/build.cmake.001.log
 CMake Error at /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:367 (message):
   A required package was not found
-Call Stack (most recent call first):
-  /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:532 (_pkg_check_modules_internal)
-  CMakeLists.txt:8 (pkg_check_modules)
- 
-_______________________________________________________________________________
-Errors     << audio_play:cmake /home/gisen/ros/logs/audio_play/build.cmake.001.log
-CMake Error at /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:367 (message):
-  A required package was not found
-Call Stack (most recent call first):
-  /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:532 (_pkg_check_modules_internal)
-  CMakeLists.txt:8 (pkg_check_modules)
-
 ```
 
 
