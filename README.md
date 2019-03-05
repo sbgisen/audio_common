@@ -8,7 +8,7 @@ audio_play: Receives audio messages from an audio_capture node. Outputs the mess
 
 audio_common_msgs: Message definitions for audio transport.
 
-sound_play: A package to play sound files and synthesize speech.
+sound_play: A package to play sound files and synthesize speech. (音声合成)
 
 
 # Support
