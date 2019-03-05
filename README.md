@@ -2,6 +2,10 @@
 
 Packages in this stack:
 
+audio_common_msgs: Message definitions for audio transport.
+
+sound_play: A package to play sound files and synthesize speech.
+
 audio_capture: Provides code to capture audio from a microphone and transport it to a destination for playback.
 
 audio_play: Receives audio messages from an audio_capture node. Outputs the messages to the local speakers.
@@ -36,10 +40,6 @@ Failed     << audio_play:cmake                 [ Exited with code 1 ]
 Failed    <<< audio_play                       [ 0.8 seconds ]       
 
 ```
-
-audio_common_msgs: Message definitions for audio transport.
-
-sound_play: A package to play sound files and synthesize speech.
 
 
 # Support
