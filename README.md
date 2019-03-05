@@ -4,6 +4,17 @@ This repository contains the ROS audio\_common package.
 
 For user documentation, please refer to the [ROS Wiki page for audio\_common](http://wiki.ros.org/audio_common)
 
+Packages in this stack:
+
+audio_capture: Provides code to capture audio from a microphone and transport it to a destination for playback.
+
+audio_play: Receives audio messages from an audio_capture node. Outputs the messages to the local speakers.
+
+audio_common_msgs: Message definitions for audio transport.
+
+sound_play: A package to play sound files and synthesize speech.
+
+
 # Support
 
 Please ask support questions on [ROS Answers](http://answers.ros.org/questions/).
