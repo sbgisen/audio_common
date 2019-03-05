@@ -11,6 +11,7 @@ audio_capture: Provides code to capture audio from a microphone and transport it
 audio_play: Receives audio messages from an audio_capture node. Outputs the messages to the local speakers.
 
 現状上記、2つは、コンパイル時にエラーが出る。
+`libgstreamer-plugins-base1.0-dev` と ` gstreamer1.0`　をapt でinstallすること
 
 ```
 Errors     << audio_capture:cmake /home/gisen/ros/logs/audio_capture/build.cmake.001.log
@@ -19,12 +20,7 @@ CMake Error at /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:367 (message):
 Call Stack (most recent call first):
   /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:532 (_pkg_check_modules_internal)
   CMakeLists.txt:8 (pkg_check_modules)
-
-
-cd /home/gisen/ros/build/audio_capture; catkin build --get-env audio_capture | catkin env -si  /usr/bin/cmake /home/gisen/ros/src/audio_common/audio_capture --no-warn-unused-cli -DCATKIN_DEVEL_PREFIX=/home/gisen/ros/devel/.private/audio_capture -DCMAKE_INSTALL_PREFIX=/home/gisen/ros/install; cd -
-...............................................................................
-Failed     << audio_capture:cmake              [ Exited with code 1 ]          
-Failed    <<< audio_capture                    [ 0.8 seconds ]                 
+ 
 _______________________________________________________________________________
 Errors     << audio_play:cmake /home/gisen/ros/logs/audio_play/build.cmake.001.log
 CMake Error at /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:367 (message):
@@ -32,12 +28,6 @@ CMake Error at /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:367 (message):
 Call Stack (most recent call first):
   /usr/share/cmake-3.5/Modules/FindPkgConfig.cmake:532 (_pkg_check_modules_internal)
   CMakeLists.txt:8 (pkg_check_modules)
-
-
-cd /home/gisen/ros/build/audio_play; catkin build --get-env audio_play | catkin env -si  /usr/bin/cmake /home/gisen/ros/src/audio_common/audio_play --no-warn-unused-cli -DCATKIN_DEVEL_PREFIX=/home/gisen/ros/devel/.private/audio_play -DCMAKE_INSTALL_PREFIX=/home/gisen/ros/install; cd -
-...............................................................................
-Failed     << audio_play:cmake                 [ Exited with code 1 ]          
-Failed    <<< audio_play                       [ 0.8 seconds ]       
 
 ```
 
