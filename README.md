@@ -1,9 +1,5 @@
 # ROS audio\_common Package
 
-This repository contains the ROS audio\_common package.
-
-For user documentation, please refer to the [ROS Wiki page for audio\_common](http://wiki.ros.org/audio_common)
-
 Packages in this stack:
 
 audio_capture: Provides code to capture audio from a microphone and transport it to a destination for playback.
