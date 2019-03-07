@@ -8,7 +8,9 @@ sound_play
 - ただし鳴らす音楽は、server内に入れておく必要がある。
 - 音を鳴らしてもmax10秒程度しか鳴らせない為、原因調査中
 
-## Dependencies
+## 関係のあるnode / launch
+
+ - 
 
 
 
