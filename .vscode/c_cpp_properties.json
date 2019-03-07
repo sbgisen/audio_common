@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/gisen/ros/devel/include",
+                "/opt/ros/kinetic/include",
+                "/home/gisen/ros/src/racecar/ackermann_cmd_mux/include",
+                "/home/gisen/ros/src/sbgisen/cube/cube_base_local_planner/include",
+                "/home/gisen/ros/src/sbgisen/cube/cube_control/include",
+                "/home/gisen/ros/src/realsense/ddynamic_reconfigure/include",
+                "/home/gisen/ros/src/ros_controllers/diff_drive_controller/include",
+                "/home/gisen/ros/src/heatmap/include",
+                "/home/gisen/ros/src/json_transport/json_transport/include",
+                "/home/gisen/ros/src/iai_kinect2/kinect2_bridge/include",
+                "/home/gisen/ros/src/iai_kinect2/kinect2_calibration/include",
+                "/home/gisen/ros/src/iai_kinect2/kinect2_registration/include",
+                "/home/gisen/ros/src/quanergy_client_ros/include",
+                "/home/gisen/ros/src/sbgisen/cube/cube_navigation_layers/range_sensor_layer/include",
+                "/home/gisen/ros/src/realsense/realsense2_camera/include",
+                "/home/gisen/ros/src/sbgisen/cube/cube_navigation_layers/social_navigation_layers/include",
+                "/home/gisen/ros/src/audio_common/sound_play/include",
+                "/home/gisen/ros/src/vesc/vesc_ackermann/include",
+                "/home/gisen/ros/src/vesc/vesc_driver/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
