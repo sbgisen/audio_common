@@ -1,6 +1,17 @@
 sound_play
 =========
 
+## できること
+
+- action client / serverで音を鳴らすnodeと、何を鳴らすのかとvolumeを指定して鳴らすタイミングが指定できるnodeにわけられる。
+- 文字をclientから指定して、音声合成（英語のみ）も可能
+- ただし鳴らす音楽は、server内に入れておく必要がある。
+- 音を鳴らしてもmax10秒程度しか鳴らせない為、原因調査中
+
+## Dependencies
+
+
+
 ## Dependencies
 
 - python-pygame

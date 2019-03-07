@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # ***********************************************************
 # * Software License Agreement (BSD License)
@@ -70,9 +71,10 @@ if __name__ == '__main__':
     # soundhandle.say('Hello world!')
     # sleep(3)
 
-    print 'wave'
-    soundhandle.playWave('01_panya.wav')
-    sleep(2)
+# 10秒ぐらいで切れる。
+    # print 'wave'
+    # soundhandle.playWave('01_panya.wav')
+    # sleep(100)
 
     # print 'quiet wave'
     # soundhandle.playWave('say-beep.wav', 0.3)
@@ -104,14 +106,15 @@ if __name__ == '__main__':
     # s4 = soundhandle.builtinSound(SoundRequest.NEEDS_UNPLUGGING_BADLY, 0.3)
     # s5 = soundhandle.waveSound("say-beep.wav", 0.3)
     # s6 = soundhandle.voiceSound("Testing the new A P I", 0.3)
+    s6 = soundhandle.waveSound("01_panya.wav")
 
     # print "New API start voice"
     # s3.repeat()
     # sleep(3)
 
-    # print "New API start voice quiet"
-    # s6.play()
-    # sleep(3)
+# 10秒ぐらいで切れる。
+    s6.play()
+    sleep(20)
 
     # print "New API wave"
     # s2.repeat()
