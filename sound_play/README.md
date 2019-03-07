@@ -7,11 +7,17 @@ sound_play
 - 文字をclientから指定して、音声合成（英語のみ）も可能
 - ただし鳴らす音楽は、server内に入れておく必要がある。
 - 音を鳴らしてもmax10秒程度しか鳴らせない為、原因調査中
+- 当然ながら、ROS環境下で、鳴らす為、同じroscore内にいる必要がある。
 
 ## 関係のあるnode / launch
 
- - 
+- sound_client.launch
 
+鳴らす音声ファイルや、音声合成文字を指定するnodeを起動
+
+- test.launch
+
+音声を鳴らすnode
 
 
 ## Dependencies
