@@ -77,6 +77,26 @@ def generate_launch_description():
         }],
     )
 
+    _audio_capture_node2 = Node(
+        package='audio_capture',
+        name='audio_capture',
+        executable='audio_capture_portaudio_node',
+        namespace=[_ns, '2'],
+        remappings=[
+            ('audio', _audio_topic),
+        ],
+        parameters=[{
+            'dst': _dst,
+            'device': _device,
+            'format': _format,
+            'bitrate': _bitrate,
+            'channels': _channels,
+            'depth': _depth,
+            'sample_rate': _sample_rate,
+            'sample_format': _sample_format,
+        }],
+    )
+
     return LaunchDescription([
         _dst_launch_arg,
         _device_launch_arg,
@@ -89,4 +109,5 @@ def generate_launch_description():
         _ns_launch_arg,
         _audio_topic_launch_arg,
         _audio_capture_node,
+        _audio_capture_node2,
     ])
