@@ -42,7 +42,6 @@ public:
       exitOnMainThread(1);
     }
 
-    _bitrate = 192;
     std::string device;
 
     this->declare_parameter<std::string>("sample_format", "S16LE");
@@ -50,8 +49,10 @@ public:
 
     this->declare_parameter<int>("channels", 1);
     this->declare_parameter<int>("sample_rate", 16000);
+    this->declare_parameter<int>("bitrate", 192);
     this->get_parameter("channels", _channels);
     this->get_parameter("sample_rate", _sample_rate);
+    this->get_parameter("bitrate", _bitrate);
 
     this->declare_parameter<std::string>("device", "");
     this->get_parameter("device", device);
@@ -113,7 +114,22 @@ private:
     PaStreamParameters inputParameters;
     inputParameters.device = Pa_GetDefaultInputDevice();
     inputParameters.channelCount = _channels;
-    inputParameters.sampleFormat = paInt16;
+    if (_sample_format == "S16LE") {
+      inputParameters.sampleFormat = paInt16;
+    } else if (_sample_format == "S32LE") {
+      inputParameters.sampleFormat = paInt32;
+    } else if (_sample_format == "U8") {
+      inputParameters.sampleFormat = paUInt8;
+    } else if (_sample_format == "S8") {
+      inputParameters.sampleFormat = paInt8;
+    } else if (_sample_format == "F32LE") {
+      inputParameters.sampleFormat = paFloat32;
+    } else if (_sample_format == "S24LE") {
+      inputParameters.sampleFormat = paInt24;
+    } else {
+      RCLCPP_ERROR(this->get_logger(), "Unsupported sample format: %s", _sample_format.c_str());
+      exitOnMainThread(1);
+    }
     inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
     inputParameters.hostApiSpecificStreamInfo = nullptr;
 
