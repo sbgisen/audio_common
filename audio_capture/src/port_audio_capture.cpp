@@ -42,8 +42,6 @@ public:
       exitOnMainThread(1);
     }
 
-    std::string device;
-
     this->declare_parameter<std::string>("sample_format", "S16LE");
     this->get_parameter("sample_format", _sample_format);
 
@@ -53,9 +51,6 @@ public:
     this->get_parameter("channels", _channels);
     this->get_parameter("sample_rate", _sample_rate);
     this->get_parameter("bitrate", _bitrate);
-
-    this->declare_parameter<std::string>("device", "");
-    this->get_parameter("device", device);
 
     _pub = this->create_publisher<audio_common_msgs::msg::AudioData>("audio", 10);
     auto info_qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local();
@@ -74,7 +69,7 @@ public:
         diagnostic_updater::TimeStampStatusParam());
 
     _stream = nullptr;
-    openStream(device);
+    openStream();
 
     _gst_thread = boost::thread(boost::bind(&PortAudioCaptureNode::captureLoop, this));
 
@@ -109,7 +104,7 @@ public:
   void publishStamped(const audio_common_msgs::msg::AudioDataStamped & msg) { _diagnosed_pub_stamped->publish(msg); }
 
 private:
-  void openStream(const std::string & device)
+  void openStream()
   {
     PaStreamParameters inputParameters;
     inputParameters.device = Pa_GetDefaultInputDevice();
