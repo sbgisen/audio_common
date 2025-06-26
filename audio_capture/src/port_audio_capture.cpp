@@ -48,9 +48,11 @@ public:
     this->declare_parameter<int>("channels", 1);
     this->declare_parameter<int>("sample_rate", 16000);
     this->declare_parameter<int>("bitrate", 192);
+    this->declare_parameter<double>("desired_rate", 100.0);
     this->get_parameter("channels", _channels);
     this->get_parameter("sample_rate", _sample_rate);
     this->get_parameter("bitrate", _bitrate);
+    this->get_parameter("desired_rate", _desired_rate);
 
     _pub = this->create_publisher<audio_common_msgs::msg::AudioData>("audio", 10);
     auto info_qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local();
@@ -128,7 +130,7 @@ private:
     inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
     inputParameters.hostApiSpecificStreamInfo = nullptr;
 
-    unsigned long framesPerBuffer = _sample_rate / 100.0 * _channels;
+    unsigned long framesPerBuffer = _sample_rate / _desired_rate * _channels;
 
     PaError err = Pa_OpenStream(
       &_stream, &inputParameters,
