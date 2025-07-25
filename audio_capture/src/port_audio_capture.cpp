@@ -111,22 +111,17 @@ public:
       return CallbackReturn::FAILURE;
     }
 
-    _gst_thread = boost::thread(boost::bind(&PortAudioCaptureNode::captureLoop, this));
-
     _timer_info = rclcpp::create_timer(this, get_clock(), std::chrono::seconds(5), [this] { publishInfo(); });
     publishInfo();
     return CallbackReturn::SUCCESS;
   }
   auto on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override
   {
-    if (_gst_thread.joinable()) {
-      _gst_thread.join();
-    }
     if (_stream) {
-      Pa_StopStream(_stream);
       Pa_CloseStream(_stream);
       _stream = nullptr;
     }
+    RCLCPP_INFO(this->get_logger(), "PortAudioCaptureNode deactivated, stream closed.");
     return CallbackReturn::SUCCESS;
   }
   auto on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override {
@@ -134,11 +129,7 @@ public:
     return CallbackReturn::SUCCESS;
   }
   auto on_error(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override {
-    if (_gst_thread.joinable()) {
-      _gst_thread.join();
-    }
     if (_stream) {
-      Pa_StopStream(_stream);
       Pa_CloseStream(_stream);
       _stream = nullptr;
     }
@@ -237,20 +228,11 @@ private:
     return paContinue;
   }
 
-  void captureLoop()
-  {
-    while (rclcpp::ok()) {
-      Pa_Sleep(100);
-    }
-  }
-
   rclcpp::Publisher<audio_common_msgs::msg::AudioData>::SharedPtr _pub;
   rclcpp::Publisher<audio_common_msgs::msg::AudioInfo>::SharedPtr _pub_info;
 
   rclcpp::TimerBase::SharedPtr _timer_info;
   rclcpp::TimerBase::SharedPtr _auto_recovery_timer;
-
-  boost::thread _gst_thread;
 
   PaStream * _stream;
   int _bitrate, _channels, _sample_rate;
