@@ -12,6 +12,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 find_package(audio_common_msgs REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 find_package(PkgConfig)
@@ -28,6 +29,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${GST1.
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   rclcpp_components
+  rclcpp_lifecycle
   audio_common_msgs
   diagnostic_updater
 )
