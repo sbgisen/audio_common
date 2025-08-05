@@ -21,8 +21,10 @@
 #include <boost/thread.hpp>
 #include <diagnostic_updater/diagnostic_updater.hpp>
 #include <diagnostic_updater/publisher.hpp>
+#include <lifecycle_msgs/msg/state.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 #include "audio_common_msgs/msg/audio_data.hpp"
 #include "audio_common_msgs/msg/audio_data_stamped.hpp"
@@ -30,28 +32,21 @@
 
 namespace audio_capture
 {
-class PortAudioCaptureNode : public rclcpp::Node
+class PortAudioCaptureNode : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   PortAudioCaptureNode(const rclcpp::NodeOptions & options)
-  : Node("audio_capture_node", options), updater_(this), _desired_rate(-1.0)
+  : rclcpp_lifecycle::LifecycleNode("audio_capture_node", options), updater_(this), _desired_rate(-1.0)
   {
-    PaError err = Pa_Initialize();
-    if (err != paNoError) {
-      RCLCPP_ERROR(this->get_logger(), "PortAudio error: %s", Pa_GetErrorText(err));
-      exitOnMainThread(1);
-    }
-
     this->declare_parameter<std::string>("sample_format", "S16LE");
-    this->get_parameter("sample_format", _sample_format);
 
     this->declare_parameter<int>("channels", 1);
     this->declare_parameter<int>("sample_rate", 16000);
     this->declare_parameter<int>("bitrate", 192);
     this->declare_parameter<double>("desired_rate", 100.0);
-    this->get_parameter("channels", _channels);
-    this->get_parameter("sample_rate", _sample_rate);
-    this->get_parameter("bitrate", _bitrate);
+
+    this->declare_parameter<double>("diagnostic_tolerance", 0.1);
+
     this->get_parameter("desired_rate", _desired_rate);
 
     _pub = this->create_publisher<audio_common_msgs::msg::AudioData>("audio", 10);
@@ -61,8 +56,9 @@ public:
     rclcpp::Publisher<audio_common_msgs::msg::AudioDataStamped>::SharedPtr pub_stamped =
       this->create_publisher<audio_common_msgs::msg::AudioDataStamped>("audio_stamped", 10);
 
-    this->declare_parameter<double>("diagnostic_tolerance", 0.1);
     auto tolerance = this->get_parameter("diagnostic_tolerance").as_double();
+
+    _last_publish_time_ = rclcpp::Time(0, 0, this->get_clock()->get_clock_type());
 
     updater_.setHardwareID("microphone");
     _diagnosed_pub_stamped =
@@ -70,13 +66,8 @@ public:
         pub_stamped, updater_, diagnostic_updater::FrequencyStatusParam(&_desired_rate, &_desired_rate, tolerance, 10),
         diagnostic_updater::TimeStampStatusParam());
 
-    _stream = nullptr;
-    openStream();
-
-    _gst_thread = boost::thread(boost::bind(&PortAudioCaptureNode::captureLoop, this));
-
-    _timer_info = rclcpp::create_timer(this, get_clock(), std::chrono::seconds(5), [this] { publishInfo(); });
-    publishInfo();
+    _auto_recovery_timer =
+      create_wall_timer(std::chrono::duration<double>(1.0), [this] { autoRecoveryTrigger(); });
   }
 
   void publishInfo()
@@ -99,14 +90,77 @@ public:
     Pa_Terminate();
   }
 
-  void exitOnMainThread(int code) { exit(code); }
+  using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+  auto on_configure(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override
+  {
+    PaError err = Pa_Initialize();
+    if (err != paNoError) {
+      RCLCPP_ERROR(this->get_logger(), "PortAudio error: %s", Pa_GetErrorText(err));
+      return CallbackReturn::FAILURE;
+    }
+    this->get_parameter("sample_format", _sample_format);
+    this->get_parameter("channels", _channels);
+    this->get_parameter("sample_rate", _sample_rate);
+    this->get_parameter("bitrate", _bitrate);
+
+    return CallbackReturn::SUCCESS;
+  }
+  auto on_activate(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override {
+    _stream = nullptr;
+    if (!openStream()) {
+      return CallbackReturn::FAILURE;
+    }
+
+    _timer_info = rclcpp::create_timer(this, get_clock(), std::chrono::seconds(5), [this] { publishInfo(); });
+    publishInfo();
+    return CallbackReturn::SUCCESS;
+  }
+  auto on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override
+  {
+    if (_stream) {
+      Pa_CloseStream(_stream);
+      _stream = nullptr;
+    }
+    RCLCPP_INFO(this->get_logger(), "PortAudioCaptureNode deactivated, stream closed.");
+    return CallbackReturn::SUCCESS;
+  }
+  auto on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override {
+    _last_publish_time_ = rclcpp::Time(0, 0, this->get_clock()->get_clock_type());
+    return CallbackReturn::SUCCESS;
+  }
+  auto on_error(const rclcpp_lifecycle::State & /*previous_state*/) -> CallbackReturn override {
+    if (_stream) {
+      Pa_CloseStream(_stream);
+      _stream = nullptr;
+    }
+    return CallbackReturn::SUCCESS;
+  }
+
+  void autoRecoveryTrigger()
+  {
+    if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_UNCONFIGURED) {
+      trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
+    } else if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE) {
+      if (get_clock()->now() - _last_publish_time_ > rclcpp::Duration::from_seconds(1.0)) {
+        RCLCPP_WARN(this->get_logger(), "No audio data published for 1 second, deactivating.");
+        trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE);
+      }
+    } else if (get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE) {
+      if (_last_publish_time_ != rclcpp::Time(0, 0, this->get_clock()->get_clock_type())) {
+        trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CLEANUP);
+      } else {
+        RCLCPP_INFO(this->get_logger(), "Reactivating.");
+        trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE);
+      }
+    }
+  }
 
   void publish(const audio_common_msgs::msg::AudioData & msg) { _pub->publish(msg); }
 
   void publishStamped(const audio_common_msgs::msg::AudioDataStamped & msg) { _diagnosed_pub_stamped->publish(msg); }
 
 private:
-  void openStream()
+  auto openStream() -> bool
   {
     PaStreamParameters inputParameters;
     inputParameters.device = Pa_GetDefaultInputDevice();
@@ -125,7 +179,7 @@ private:
       inputParameters.sampleFormat = paInt24;
     } else {
       RCLCPP_ERROR(this->get_logger(), "Unsupported sample format: %s", _sample_format.c_str());
-      exitOnMainThread(1);
+      return false;
     }
     inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
     inputParameters.hostApiSpecificStreamInfo = nullptr;
@@ -139,14 +193,16 @@ private:
 
     if (err != paNoError) {
       RCLCPP_ERROR(this->get_logger(), "PortAudio error: %s", Pa_GetErrorText(err));
-      exitOnMainThread(1);
+      return false;
     }
 
     err = Pa_StartStream(_stream);
     if (err != paNoError) {
       RCLCPP_ERROR(this->get_logger(), "PortAudio error: %s", Pa_GetErrorText(err));
-      exitOnMainThread(1);
+      return false;
     }
+
+    return true;
   }
 
   static int paCallback(
@@ -167,23 +223,16 @@ private:
 
     server->publish(msg);
     server->publishStamped(stamped_msg);
+    server->_last_publish_time_ = stamped_msg.header.stamp;
 
     return paContinue;
-  }
-
-  void captureLoop()
-  {
-    while (rclcpp::ok()) {
-      Pa_Sleep(100);
-    }
   }
 
   rclcpp::Publisher<audio_common_msgs::msg::AudioData>::SharedPtr _pub;
   rclcpp::Publisher<audio_common_msgs::msg::AudioInfo>::SharedPtr _pub_info;
 
   rclcpp::TimerBase::SharedPtr _timer_info;
-
-  boost::thread _gst_thread;
+  rclcpp::TimerBase::SharedPtr _auto_recovery_timer;
 
   PaStream * _stream;
   int _bitrate, _channels, _sample_rate;
@@ -193,6 +242,7 @@ private:
   double _desired_rate;
   std::shared_ptr<diagnostic_updater::DiagnosedPublisher<audio_common_msgs::msg::AudioDataStamped>>
     _diagnosed_pub_stamped;
+  rclcpp::Time _last_publish_time_;
 };
 }  // namespace audio_capture
 
