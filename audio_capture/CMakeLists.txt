@@ -20,7 +20,6 @@ pkg_check_modules(GST1.0 gstreamer-1.0 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 pkg_check_modules(PULSE REQUIRED libpulse)
-pkg_check_modules(PULSE_SIMPLE REQUIRED libpulse-simple)
 
 add_library(${PROJECT_NAME} SHARED
   src/audio_capture_node.cpp
@@ -28,7 +27,7 @@ add_library(${PROJECT_NAME} SHARED
   src/pulse_audio_capture.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${GST1.0_INCLUDE_DIRS} ${PORTAUDIO_INCLUDE_DIRS} ${PULSE_INCLUDE_DIRS} ${PULSE_SIMPLE_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${GST1.0_INCLUDE_DIRS} ${PORTAUDIO_INCLUDE_DIRS} ${PULSE_INCLUDE_DIRS})
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   rclcpp_components
@@ -37,7 +36,7 @@ ament_target_dependencies(${PROJECT_NAME}
   diagnostic_updater
 )
 
-target_link_libraries(${PROJECT_NAME} ${GST1.0_LIBRARIES} ${Boost_LIBRARIES} ${PORTAUDIO_LIBRARIES} ${PULSE_LIBRARIES} ${PULSE_SIMPLE_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${GST1.0_LIBRARIES} ${Boost_LIBRARIES} ${PORTAUDIO_LIBRARIES} ${PULSE_LIBRARIES})
 
 rclcpp_components_register_node(
   ${PROJECT_NAME}
