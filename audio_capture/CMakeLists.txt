@@ -19,13 +19,15 @@ find_package(PkgConfig)
 pkg_check_modules(GST1.0 gstreamer-1.0 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
+pkg_check_modules(PULSE REQUIRED libpulse)
 
 add_library(${PROJECT_NAME} SHARED
   src/audio_capture_node.cpp
   src/port_audio_capture.cpp
+  src/pulse_audio_capture.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${GST1.0_INCLUDE_DIRS} ${PORTAUDIO_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS} ${GST1.0_INCLUDE_DIRS} ${PORTAUDIO_INCLUDE_DIRS} ${PULSE_INCLUDE_DIRS})
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   rclcpp_components
@@ -34,7 +36,7 @@ ament_target_dependencies(${PROJECT_NAME}
   diagnostic_updater
 )
 
-target_link_libraries(${PROJECT_NAME} ${GST1.0_LIBRARIES} ${Boost_LIBRARIES} ${PORTAUDIO_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${GST1.0_LIBRARIES} ${Boost_LIBRARIES} ${PORTAUDIO_LIBRARIES} ${PULSE_LIBRARIES})
 
 rclcpp_components_register_node(
   ${PROJECT_NAME}
@@ -46,6 +48,11 @@ rclcpp_components_register_node(
   PLUGIN "audio_capture::PortAudioCaptureNode"
   EXECUTABLE audio_capture_portaudio_node
 )
+rclcpp_components_register_node(
+  ${PROJECT_NAME}
+  PLUGIN "audio_capture::PulseAudioCaptureNode"
+  EXECUTABLE audio_capture_pulseaudio_node
+)
 
 install(TARGETS audio_capture_node ${PROJECT_NAME}
   LIBRARY DESTINATION lib
@@ -54,6 +61,12 @@ install(TARGETS audio_capture_node ${PROJECT_NAME}
 )
 
 install(TARGETS audio_capture_portaudio_node ${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(TARGETS audio_capture_pulseaudio_node ${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
